@@ -3,6 +3,7 @@ use std::io::{self, Read};
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::env;
 use lazy_static::lazy_static;
 use bigdecimal::{FromPrimitive, BigDecimal};
 use qp_trie::{wrapper::BString, Trie};
@@ -17,6 +18,16 @@ lazy_static! {
 }
 
 fn main() {
+    let mut args: Vec<String> = env::args().collect();
+
+    let search_term = args.pop().expect("to have single argument");
+    if args.len() != 1 {
+        println!("Please use a single argument");
+        return;
+    }
+    
+    println!("Searching for {}", search_term);
+
     let email_file_paths = get_email_paths_from_dir("/home/qwuke/enron_search_engine/resources/enron/").expect("Cannot read files");
 
     let document_word_freq = get_document_word_freq(email_file_paths); 
@@ -26,8 +37,8 @@ fn main() {
     let tf_idf = calc_tf_idf(document_word_freq, inverse_document_frequency);
 
     let mut search_trie = build_search_trie(tf_idf);
-
-    search("dogs", &mut search_trie);
+    
+    search(&search_term, &mut search_trie);
 }
 
 fn search(input: &str, search_trie: &mut Trie<BString, BTreeMap<BigDecimal, String>>) {
